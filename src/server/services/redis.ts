@@ -250,7 +250,7 @@ export async function incrementStats(
 
   const data = await redis.get(key);
   const stats: DailyStats = data
-    ? JSON.parse(data)
+    ? JSON.parse(String(data))
     : createEmptyStats(subreddit, today);
 
   if (typeof stats[field] === 'number') {
@@ -269,7 +269,7 @@ export async function incrementModAction(
 
   const data = await redis.get(key);
   const stats: DailyStats = data
-    ? JSON.parse(data)
+    ? JSON.parse(String(data))
     : createEmptyStats(subreddit, today);
 
   stats.moderatorActions[modUsername] =
