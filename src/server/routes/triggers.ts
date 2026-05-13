@@ -1,29 +1,29 @@
+// ============================================================================
+// TRIGGER HANDLERS
+// ============================================================================
+
 import { Hono } from 'hono';
-import type { OnAppInstallRequest, TriggerResponse } from '@devvit/web/shared';
-import { context } from '@devvit/web/server';
-import { createPost } from '../core/post';
 
 export const triggers = new Hono();
 
+// Health check for trigger endpoint - Devvit posts to this exact path
+triggers.get('/', async (c) => {
+  return c.json({ status: 'ok' });
+});
+
+// On App Install Trigger - MUST work without subreddit context
+// Devvit expects POST to /internal/triggers/on-app-install
 triggers.post('/on-app-install', async (c) => {
   try {
-    const post = await createPost();
-    const input = await c.req.json<OnAppInstallRequest>();
-
-    return c.json<TriggerResponse>(
-      {
-        status: 'success',
-        message: `Post created in subreddit ${context.subredditName} with id ${post.id} (trigger: ${input.type})`,
-      },
-      200
-    );
+    console.log('OnAppInstall trigger called');
+    return c.json({
+      status: 'success',
+      message: 'App installed successfully',
+    });
   } catch (error) {
-    console.error(`Error creating post: ${error}`);
-    return c.json<TriggerResponse>(
-      {
-        status: 'error',
-        message: 'Failed to create post',
-      },
+    console.error('OnAppInstall trigger error:', error);
+    return c.json(
+      { status: 'error', message: 'Failed to install app' },
       400
     );
   }

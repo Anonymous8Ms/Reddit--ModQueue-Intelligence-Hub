@@ -2,6 +2,14 @@
 // API RESPONSE TYPES - Shared between frontend and backend
 // ============================================================================
 
+import type {
+  DetectedPattern,
+  EnrichedModQueueItem,
+  ItemClaim,
+  ModPresence,
+  UserContext,
+} from './types';
+
 export type InitResponse = {
   type: 'init';
   postId: string;

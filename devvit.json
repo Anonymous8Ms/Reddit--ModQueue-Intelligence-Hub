@@ -1,6 +1,9 @@
 {
   "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
   "name": "modqueue-hub",
+  "triggers": {
+    "onAppInstall": "/internal/triggers/on-app-install"
+  },
   "post": {
     "dir": "dist/client",
     "entrypoints": {
@@ -37,9 +40,6 @@
   },
   "forms": {
     "exampleForm": "/internal/form/example-submit"
-  },
-  "triggers": {
-    "onAppInstall": "/internal/triggers/on-app-install"
   },
   "scripts": {
     "dev": "vite build --watch",

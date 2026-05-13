@@ -1,31 +1,32 @@
-// ============================================================================
-// SERVER INDEX - Main entry point
-// ============================================================================
-
-import { Hono } from 'hono';
-import { serve } from '@hono/node-server';
+import { getRequestListener } from '@hono/node-server';
 import { createServer, getServerPort } from '@devvit/web/server';
+import { Hono } from 'hono';
 import { api } from './routes/api';
 import { forms } from './routes/forms';
 import { menu } from './routes/menu';
-import { triggers } from './routes/triggers';
 import { queueApi } from './routes/queue';
+import { triggers } from './routes/triggers';
 
 const app = new Hono();
-const internal = new Hono();
 
-internal.route('/menu', menu);
-internal.route('/form', forms);
-internal.route('/triggers', triggers);
-
-// Original API routes
+app.route('/internal/triggers', triggers);
+app.route('/internal/menu', menu);
+app.route('/internal/form', forms);
 app.route('/api', api);
-
-// ModQueue Hub API routes
 app.route('/modqueue', queueApi);
 
-serve({
-  fetch: app.fetch,
-  createServer,
-  port: getServerPort(),
+app.get('/health', (c) => {
+  return c.json({ status: 'healthy' });
 });
+
+app.notFound((c) => {
+  return c.text('Not Found', 404);
+});
+
+const server = createServer(getRequestListener(app.fetch));
+
+server.on('error', (error) => {
+  console.error(`server error: ${error.stack ?? error.message}`);
+});
+
+server.listen(getServerPort());
