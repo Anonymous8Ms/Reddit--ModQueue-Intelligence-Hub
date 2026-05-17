@@ -68,11 +68,11 @@ function computeScore(factors: PriorityFactors): number {
   score += Math.min(factors.previousViolations, WEIGHTS.PREVIOUS_VIOLATIONS.MAX_VIOLATIONS) * WEIGHTS.PREVIOUS_VIOLATIONS.PER_VIOLATION;
   if (factors.hasKeywords) score += WEIGHTS.KEYWORDS;
   if (factors.contentType === 'post') score += WEIGHTS.CONTENT_TYPE.POST;
-  return Math.min(score, 5);
+  return Math.min(5, Math.max(1, Math.ceil(score)));
 }
 
 function generateReasoning(factors: PriorityFactors, score: number): string {
-  const reasons: string[] = [score < 2 ? 'LOW PRIORITY' : score < 3 ? 'MEDIUM PRIORITY' : score < 4 ? 'HIGH PRIORITY' : 'CRITICAL PRIORITY'];
+  const reasons: string[] = [getPriorityReasonLabel(score)];
   if (factors.reportCount > 0) reasons.push(`${factors.reportCount} reports`);
   if (factors.hasKeywords) reasons.push('suspicious keywords detected');
   if (factors.contentType === 'post') reasons.push('post (not comment)');
@@ -80,7 +80,7 @@ function generateReasoning(factors: PriorityFactors, score: number): string {
 }
 
 function generateReasoningWithContext(factors: PriorityFactors, score: number): string {
-  const reasons: string[] = [score < 2 ? 'LOW PRIORITY' : score < 3 ? 'MEDIUM PRIORITY' : score < 4 ? 'HIGH PRIORITY' : 'CRITICAL PRIORITY'];
+  const reasons: string[] = [getPriorityReasonLabel(score)];
   if (factors.reportCount > 0) reasons.push(`${factors.reportCount} reports`);
   if (factors.accountAgeDays < 7) reasons.push('new account (<7 days)');
   else if (factors.accountAgeDays < 30) reasons.push(`young account (${factors.accountAgeDays} days)`);
@@ -90,20 +90,32 @@ function generateReasoningWithContext(factors: PriorityFactors, score: number): 
   return reasons.join(': ');
 }
 
+function getPriorityReasonLabel(score: number): string {
+  if (score <= 1) return 'MINIMAL PRIORITY';
+  if (score <= 2) return 'LOW PRIORITY';
+  if (score <= 3) return 'MEDIUM PRIORITY';
+  if (score <= 4) return 'HIGH PRIORITY';
+  return 'CRITICAL PRIORITY';
+}
+
 export function sortByPriority(items: Array<{ id: string; priority: PriorityScore }>): string[] {
   return items.sort((a, b) => b.priority.score - a.priority.score).map((item) => item.id);
 }
 
-export function getPriorityLevel(score: number): 'low' | 'medium' | 'high' | 'critical' {
-  if (score < 2) return 'low';
-  if (score < 3) return 'medium';
-  if (score < 4) return 'high';
+export function getPriorityLevel(
+  score: number
+): 'minimal' | 'low' | 'medium' | 'high' | 'critical' {
+  if (score <= 1) return 'minimal';
+  if (score <= 2) return 'low';
+  if (score <= 3) return 'medium';
+  if (score <= 4) return 'high';
   return 'critical';
 }
 
 export function getPriorityColor(score: number): string {
   const level = getPriorityLevel(score);
   switch (level) {
+    case 'minimal': return '#64748b';
     case 'critical': return '#dc2626';
     case 'high': return '#f97316';
     case 'medium': return '#eab308';

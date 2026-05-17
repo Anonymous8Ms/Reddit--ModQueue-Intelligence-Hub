@@ -2,6 +2,7 @@
 // PATTERN ALERT COMPONENT
 // ============================================================================
 
+import type { CSSProperties } from 'react';
 import { getPatternIcon, getPatternColor } from './api';
 import type { DetectedPattern } from '../shared/types';
 
@@ -43,7 +44,7 @@ export function PatternAlerts({ patterns, onItemClick }: Props) {
   );
 }
 
-const styles: Record<string, React.CSSProperties> = {
+const styles: Record<string, CSSProperties> = {
   container: {
     marginBottom: '16px',
   },

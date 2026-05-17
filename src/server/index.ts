@@ -13,6 +13,7 @@ app.route('/internal/triggers', triggers);
 app.route('/internal/menu', menu);
 app.route('/internal/form', forms);
 app.route('/api', api);
+app.route('/api/modqueue', queueApi);
 app.route('/modqueue', queueApi);
 
 app.get('/health', (c) => {

@@ -2,7 +2,7 @@
 // CONTEXT PANEL COMPONENT (Modal/Popup)
 // ============================================================================
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, type CSSProperties } from 'react';
 import { api, formatTimeAgo, formatAccountAge } from './api';
 import type { UserContext, RecentActivity, ModAction } from '../shared/types';
 
@@ -12,16 +12,14 @@ type Props = {
   onClose: () => void;
 };
 
+const MIN_GRID_COLUMNS = 'repeat(auto-fit, minmax(140px, 1fr))';
+
 export function ContextPanel({ userId, username, onClose }: Props) {
   const [context, setContext] = useState<UserContext | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'activity' | 'modHistory'>('activity');
 
-  useEffect(() => {
-    loadContext();
-  }, [userId]);
-
-  const loadContext = async () => {
+  const loadContext = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.getUserContext(userId, username);
@@ -31,7 +29,11 @@ export function ContextPanel({ userId, username, onClose }: Props) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId, username]);
+
+  useEffect(() => {
+    void loadContext();
+  }, [loadContext]);
 
   return (
     <div style={styles.overlay} onClick={onClose}>
@@ -141,7 +143,7 @@ function ModHistoryList({ actions }: { actions: ModAction[] }) {
   );
 }
 
-const styles: Record<string, React.CSSProperties> = {
+const styles: Record<string, CSSProperties> = {
   overlay: {
     position: 'fixed',
     top: 0, left: 0, right: 0, bottom: 0,
@@ -193,7 +195,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   statsGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(4, 1fr)',
+    gridTemplateColumns: MIN_GRID_COLUMNS,
     gap: '12px',
     padding: '16px 20px',
     borderBottom: '1px solid #374151',

@@ -2,6 +2,7 @@
 // ACTIVE MODERATORS COMPONENT
 // ============================================================================
 
+import type { CSSProperties } from 'react';
 import { formatTimeAgo } from './api';
 import type { ModPresence } from '../shared/types';
 
@@ -45,7 +46,7 @@ export function ActiveModerators({ moderators }: Props) {
   );
 }
 
-const styles: Record<string, React.CSSProperties> = {
+const styles: Record<string, CSSProperties> = {
   container: {
     backgroundColor: '#1f2937',
     borderRadius: '12px',

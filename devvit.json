@@ -1,9 +1,6 @@
 {
   "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
-  "name": "modqueue-hub",
-  "triggers": {
-    "onAppInstall": "/internal/triggers/on-app-install"
-  },
+  "name": "modqueue-hub-1",
   "post": {
     "dir": "dist/client",
     "entrypoints": {
@@ -20,8 +17,21 @@
     "dir": "dist/server",
     "entry": "index.cjs"
   },
+  "permissions": {
+    "reddit": {
+      "enable": true
+    },
+    "redis": true
+  },
   "menu": {
     "items": [
+      {
+        "label": "Open Dashboard",
+        "description": "Open the ModQueue Intelligence Hub",
+        "location": "subreddit",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/open-dashboard"
+      },
       {
         "label": "Create a new post",
         "description": "modqueue-hub",
@@ -44,5 +54,8 @@
   "scripts": {
     "dev": "vite build --watch",
     "build": "vite build"
+  },
+  "dev": {
+    "subreddit": "modqueue_hub_1_dev"
   }
 }

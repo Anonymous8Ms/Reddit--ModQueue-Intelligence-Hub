@@ -2,19 +2,23 @@
 // MODQUEUE ITEM CARD COMPONENT
 // ============================================================================
 
-import { useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { api, getPriorityColor, getPriorityLevel, formatTimeAgo } from './api';
-import type { EnrichedModQueueItem, ItemClaim, UserContext } from '../shared/types';
+import type { ClaimResponse, EnrichedModQueueItem, ItemClaim } from '../shared/api';
 
 type Props = {
   item: EnrichedModQueueItem;
-  onClaim?: (itemId: string, claimed: boolean) => void;
+  onClaim?: (itemId: string, claim: ItemClaim | null) => void;
   onContextRequest?: (userId: string, username: string) => void;
 };
 
 export function ModQueueCard({ item, onClaim, onContextRequest }: Props) {
   const [claiming, setClaiming] = useState(false);
   const [claim, setClaim] = useState(item.claim);
+
+  useEffect(() => {
+    setClaim(item.claim);
+  }, [item.claim]);
 
   const priorityColor = getPriorityColor(item.priority.score);
   const priorityLevel = getPriorityLevel(item.priority.score);
@@ -28,19 +32,27 @@ export function ModQueueCard({ item, onClaim, onContextRequest }: Props) {
         const res = await api.releaseItem(item.id);
         if (res.success) {
           setClaim(undefined);
-          onClaim?.(item.id, false);
+          onClaim?.(item.id, null);
         }
       } else {
         const res = await api.claimItem(item.id);
-        if (res.success && res.claim) {
-          setClaim(res.claim);
-          onClaim?.(item.id, true);
-        } else if (res.existingClaim) {
-          setClaim(res.existingClaim);
-        }
+        syncClaimState(res);
       }
     } finally {
       setClaiming(false);
+    }
+  };
+
+  const syncClaimState = (res: ClaimResponse) => {
+    if (res.success && res.claim) {
+      setClaim(res.claim);
+      onClaim?.(item.id, res.claim);
+      return;
+    }
+
+    if (res.existingClaim) {
+      setClaim(res.existingClaim);
+      onClaim?.(item.id, res.existingClaim);
     }
   };
 
@@ -52,7 +64,7 @@ export function ModQueueCard({ item, onClaim, onContextRequest }: Props) {
     <div style={styles.card}>
       {/* Priority Badge */}
       <div style={{ ...styles.priorityBadge, backgroundColor: priorityColor }}>
-        {item.priority.score.toFixed(1)}
+        {Math.round(item.priority.score)}
       </div>
 
       {/* Header */}
@@ -126,7 +138,7 @@ export function ModQueueCard({ item, onClaim, onContextRequest }: Props) {
   );
 }
 
-const styles: Record<string, React.CSSProperties> = {
+const styles: Record<string, CSSProperties> = {
   card: {
     backgroundColor: '#1f2937',
     borderRadius: '12px',

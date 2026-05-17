@@ -3,16 +3,13 @@
 // ============================================================================
 
 import type {
-  EnrichedModQueueItem,
   QueueResponse,
   ClaimResponse,
   ContextResponse,
   PresenceResponse,
   DetectedPattern,
-  UserContext,
-  ModPresence,
   ItemClaim,
-} from '../shared/types';
+} from '../shared/api';
 
 // ============================================================================
 // API CLIENT
@@ -21,72 +18,109 @@ import type {
 export const api = {
   // Fetch enriched modqueue
   async getQueue(): Promise<QueueResponse> {
-    const res = await fetch('/modqueue/queue');
-    return res.json();
+    return requestJson<QueueResponse>('/api/modqueue/queue');
   },
 
   // Claim an item
   async claimItem(itemId: string): Promise<ClaimResponse> {
-    const res = await fetch('/modqueue/claim', {
+    return requestJson<ClaimResponse>('/api/modqueue/claim', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ itemId }),
     });
-    return res.json();
   },
 
   // Release an item
   async releaseItem(itemId: string): Promise<ClaimResponse> {
-    const res = await fetch('/modqueue/claim', {
+    return requestJson<ClaimResponse>('/api/modqueue/claim', {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ itemId }),
     });
-    return res.json();
   },
 
   // Check claim status
   async getClaimStatus(itemId: string): Promise<{ claimed: boolean; claim: ItemClaim | null }> {
-    const res = await fetch(`/modqueue/claim/${itemId}`);
-    return res.json();
+    return requestJson<{ claimed: boolean; claim: ItemClaim | null }>(
+      `/api/modqueue/claim/${itemId}`
+    );
   },
 
   // Get active moderators
   async getPresence(): Promise<PresenceResponse> {
-    const res = await fetch('/modqueue/presence');
-    return res.json();
+    return requestJson<PresenceResponse>('/api/modqueue/presence');
   },
 
   // Get user context
   async getUserContext(userId: string, username: string): Promise<ContextResponse> {
-    const res = await fetch(`/modqueue/context/${userId}?username=${encodeURIComponent(username)}`);
-    return res.json();
+    return requestJson<ContextResponse>(
+      `/api/modqueue/context/${userId}?username=${encodeURIComponent(username)}`
+    );
   },
 
   // Record processed item
   async recordProcessed(priority?: number): Promise<void> {
-    await fetch('/modqueue/processed', {
+    await requestJson('/api/modqueue/processed', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ priority }),
     });
   },
 };
 
+async function requestJson<T>(
+  input: string,
+  init?: RequestInit
+): Promise<T> {
+  const res = await fetch(input, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(init?.headers ?? {}),
+    },
+  });
+
+  const text = await res.text();
+  if (!text) {
+    throw new Error(`Empty response from ${input}`);
+  }
+
+  let data: unknown;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error(`Non-JSON response from ${input}: ${text.slice(0, 120)}`);
+  }
+
+  if (!res.ok) {
+    const message =
+      typeof data === 'object' &&
+      data !== null &&
+      'message' in data &&
+      typeof (data as { message: unknown }).message === 'string'
+        ? (data as { message: string }).message
+        : `HTTP ${res.status}`;
+    throw new Error(message);
+  }
+
+  return data as T;
+}
+
 // ============================================================================
 // PRIORITY HELPERS
 // ============================================================================
 
-export function getPriorityLevel(score: number): 'low' | 'medium' | 'high' | 'critical' {
-  if (score < 2) return 'low';
-  if (score < 3) return 'medium';
-  if (score < 4) return 'high';
+export function getPriorityLevel(
+  score: number
+): 'minimal' | 'low' | 'medium' | 'high' | 'critical' {
+  if (score <= 1) return 'minimal';
+  if (score <= 2) return 'low';
+  if (score <= 3) return 'medium';
+  if (score <= 4) return 'high';
   return 'critical';
 }
 
 export function getPriorityColor(score: number): string {
   const level = getPriorityLevel(score);
   switch (level) {
+    case 'minimal': return '#64748b';
     case 'critical': return '#dc2626';
     case 'high': return '#f97316';
     case 'medium': return '#eab308';

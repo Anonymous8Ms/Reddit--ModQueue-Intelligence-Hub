@@ -4,7 +4,6 @@
 
 import type {
   EnrichedModQueueItem,
-  ModQueueItem,
   UserContext,
   DetectedPattern,
   ModPresence,
@@ -29,9 +28,10 @@ export type QueueData = {
 export async function getEnrichedQueue(subredditName: string): Promise<QueueData> {
   // 1. Fetch raw modqueue items
   const rawItems = await fetchModQueue(subredditName);
+  const activeModerators = await getActiveModerators();
   
   if (rawItems.length === 0) {
-    return { items: [], patterns: [], activeModerators: [], totalCount: 0 };
+    return { items: [], patterns: [], activeModerators, totalCount: 0 };
   }
 
   // 2. Get current claims (for collision prevention)
@@ -87,9 +87,6 @@ export async function getEnrichedQueue(subredditName: string): Promise<QueueData
 
   // 5. Detect patterns
   const patterns = detectPatterns(enrichedItems);
-
-  // 6. Get active moderators
-  const activeModerators = await getActiveModerators();
 
   return {
     items: enrichedItems,

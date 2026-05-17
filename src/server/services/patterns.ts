@@ -18,9 +18,12 @@ function detectSpamWave(items: EnrichedModQueueItem[], now: number): DetectedPat
   });
 
   if (recentNewAccountItems.length >= 5) {
+    const severity: PatternSeverity =
+      recentNewAccountItems.length >= 10 ? 'critical' : 'high';
+
     return {
       type: 'spam_wave',
-      severity: (recentNewAccountItems.length >= 10 ? 'critical' : 'high') as PatternSeverity,
+      severity,
       description: `${recentNewAccountItems.length} posts from new accounts in 10 minutes`,
       affectedItems: recentNewAccountItems.map((i) => i.id),
       detectedAt: now,
@@ -75,7 +78,7 @@ function detectBotActivity(items: EnrichedModQueueItem[], now: number): Detected
     }
   });
 
-  for (const [userId, itemIds] of userPostCounts) {
+  for (const [, itemIds] of userPostCounts) {
     if (itemIds.length >= 3) {
       return {
         type: 'bot_activity',

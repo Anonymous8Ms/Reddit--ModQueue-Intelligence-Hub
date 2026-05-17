@@ -1,11 +1,11 @@
-import { Hono } from 'hono';
+import { Hono, type Context as HonoContext } from 'hono';
 import type { UiResponse } from '@devvit/web/shared';
 import { context } from '@devvit/web/server';
 import { createPost } from '../core/post';
 
 export const menu = new Hono();
 
-menu.post('/post-create', async (c) => {
+const openDashboardPost = async (c: HonoContext) => {
   try {
     const post = await createPost();
 
@@ -24,4 +24,10 @@ menu.post('/post-create', async (c) => {
       400
     );
   }
+};
+
+menu.post('/open-dashboard', openDashboardPost);
+
+menu.post('/post-create', async (c) => {
+  return openDashboardPost(c);
 });

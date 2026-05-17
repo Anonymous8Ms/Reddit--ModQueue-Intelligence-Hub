@@ -2,6 +2,7 @@
 // PRIORITY INDICATOR COMPONENT
 // ============================================================================
 
+import type { CSSProperties } from 'react';
 import { getPriorityColor, getPriorityLevel } from './api';
 
 type Props = {
@@ -33,7 +34,7 @@ export function PriorityIndicator({ score, showLabel = true, size = 'md' }: Prop
           fontSize: s.fontSize,
         }}
       >
-        {score.toFixed(1)}
+        {Math.round(score)}
       </div>
       {showLabel && (
         <span style={{ ...styles.label, color }}>
@@ -44,7 +45,7 @@ export function PriorityIndicator({ score, showLabel = true, size = 'md' }: Prop
   );
 }
 
-const styles: Record<string, React.CSSProperties> = {
+const styles: Record<string, CSSProperties> = {
   container: {
     display: 'flex',
     alignItems: 'center',

@@ -35,8 +35,10 @@ queueApi.get('/queue', async (c) => {
     });
   } catch (error) {
     console.error('Failed to fetch queue:', error);
+    const message =
+      error instanceof Error ? error.message : 'Failed to fetch modqueue';
     return c.json(
-      { status: 'error', message: 'Failed to fetch modqueue' },
+      { status: 'error', message },
       500
     );
   }

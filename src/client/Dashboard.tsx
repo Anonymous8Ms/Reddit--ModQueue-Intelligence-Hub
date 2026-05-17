@@ -2,29 +2,48 @@
 // MODQUEUE DASHBOARD - Main Dashboard Component
 // ============================================================================
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, type CSSProperties } from 'react';
 import { api } from './api';
 import { ModQueueCard } from './ModQueueCard';
 import { ContextPanel } from './ContextPanel';
 import { PatternAlerts } from './PatternAlerts';
 import { ActiveModerators } from './ActiveModerators';
 import { PriorityIndicator } from './PriorityIndicator';
-import type { EnrichedModQueueItem, DetectedPattern, ModPresence, QueueResponse } from '../shared/types';
+import { ModeratorGuide } from './ModeratorGuide';
+import type {
+  EnrichedModQueueItem,
+  DetectedPattern,
+  ItemClaim,
+  ModPresence,
+} from '../shared/types';
+
+type DashboardFilter = 'all' | 'high' | 'mine';
+type DashboardSort = 'priority' | 'reports' | 'time';
+
+function isDashboardFilter(value: string): value is DashboardFilter {
+  return value === 'all' || value === 'high' || value === 'mine';
+}
+
+function isDashboardSort(value: string): value is DashboardSort {
+  return value === 'priority' || value === 'reports' || value === 'time';
+}
 
 export function ModQueueDashboard() {
+  const [isCompactLayout, setIsCompactLayout] = useState(() => getIsCompactLayout());
   const [items, setItems] = useState<EnrichedModQueueItem[]>([]);
   const [patterns, setPatterns] = useState<DetectedPattern[]>([]);
   const [moderators, setModerators] = useState<ModPresence[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
 
   // Context panel state
   const [contextUser, setContextUser] = useState<{ userId: string; username: string } | null>(null);
 
   // Filters
-  const [filter, setFilter] = useState<'all' | 'high' | 'mine'>('all');
-  const [sortBy, setSortBy] = useState<'priority' | 'reports' | 'time'>('priority');
+  const [filter, setFilter] = useState<DashboardFilter>('all');
+  const [sortBy, setSortBy] = useState<DashboardSort>('priority');
 
   const loadQueue = useCallback(async () => {
     try {
@@ -34,9 +53,11 @@ export function ModQueueDashboard() {
         setItems(data.items);
         setPatterns(data.patterns);
         setModerators(data.activeModerators);
+        setLastUpdated(Date.now());
       }
     } catch (e) {
-      setError('Failed to load modqueue');
+      const message = e instanceof Error ? e.message : 'Failed to load modqueue';
+      setError(message);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -44,30 +65,42 @@ export function ModQueueDashboard() {
   }, []);
 
   useEffect(() => {
-    loadQueue();
+    void loadQueue();
     // Auto-refresh every 30 seconds
     const interval = setInterval(() => {
       setRefreshing(true);
-      loadQueue();
+      void loadQueue();
     }, 30000);
     return () => clearInterval(interval);
   }, [loadQueue]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      setIsCompactLayout(getIsCompactLayout());
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const handleRefresh = () => {
     setRefreshing(true);
-    loadQueue();
+    void loadQueue();
   };
 
-  const handleClaim = (itemId: string, claimed: boolean) => {
+  const handleClaim = (itemId: string, claim: ItemClaim | null) => {
     setItems((prev) =>
       prev.map((item) =>
         item.id === itemId
-          ? {
-              ...item,
-              claim: claimed
-                ? { itemId, claimedBy: 'current_user', claimedAt: Date.now(), expiresAt: Date.now() + 300000 }
-                : undefined,
-            }
+          ? (() => {
+              const nextItem: EnrichedModQueueItem = { ...item };
+              if (claim) {
+                nextItem.claim = claim;
+              } else {
+                delete nextItem.claim;
+              }
+              return nextItem;
+            })()
           : item
       )
     );
@@ -89,6 +122,7 @@ export function ModQueueDashboard() {
       if (sortBy === 'reports') return b.numReports - a.numReports;
       return b.createdUtc - a.createdUtc;
     });
+  const displayedItems = filteredItems.slice(0, 10);
 
   if (loading) {
     return (
@@ -133,11 +167,11 @@ export function ModQueueDashboard() {
       {/* Stats Bar */}
       <div style={styles.statsBar}>
         <div style={styles.stat}>
-          <span style={styles.statValue}>{items.filter((i) => i.priority.score >= 4).length}</span>
+          <span style={styles.statValue}>{items.filter((i) => i.priority.score === 5).length}</span>
           <span style={styles.statLabel}>Critical</span>
         </div>
         <div style={styles.stat}>
-          <span style={styles.statValue}>{items.filter((i) => i.priority.score >= 3 && i.priority.score < 4).length}</span>
+          <span style={styles.statValue}>{items.filter((i) => i.priority.score === 4).length}</span>
           <span style={styles.statLabel}>High</span>
         </div>
         <div style={styles.stat}>
@@ -151,7 +185,11 @@ export function ModQueueDashboard() {
         <select
           style={styles.select}
           value={filter}
-          onChange={(e) => setFilter(e.target.value as any)}
+          onChange={(e) => {
+            if (isDashboardFilter(e.target.value)) {
+              setFilter(e.target.value);
+            }
+          }}
         >
           <option value="all">All Items</option>
           <option value="high">High Priority</option>
@@ -160,7 +198,11 @@ export function ModQueueDashboard() {
         <select
           style={styles.select}
           value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as any)}
+          onChange={(e) => {
+            if (isDashboardSort(e.target.value)) {
+              setSortBy(e.target.value);
+            }
+          }}
         >
           <option value="priority">Sort by Priority</option>
           <option value="reports">Sort by Reports</option>
@@ -169,13 +211,20 @@ export function ModQueueDashboard() {
       </div>
 
       {/* Main Content */}
-      <div style={styles.main}>
+      <div
+        style={{
+          ...styles.main,
+          ...(isCompactLayout ? styles.mainCompact : {}),
+        }}
+      >
         {/* Queue List */}
         <div style={styles.queueList}>
-          {filteredItems.length === 0 ? (
-            <div style={styles.empty}>No items match your filter</div>
+          {displayedItems.length === 0 ? (
+            <div style={styles.empty}>
+              {items.length === 0 ? 'No items in modqueue' : 'No items match your filter'}
+            </div>
           ) : (
-            filteredItems.map((item) => (
+            displayedItems.map((item) => (
               <ModQueueCard
                 key={item.id}
                 item={item}
@@ -189,25 +238,34 @@ export function ModQueueDashboard() {
         {/* Sidebar */}
         <aside style={styles.sidebar}>
           <ActiveModerators moderators={moderators} />
+          <ModeratorGuide
+            itemCount={items.length}
+            moderatorCount={moderators.length}
+            lastUpdated={lastUpdated}
+          />
 
           {/* Priority Legend */}
           <div style={styles.legend}>
             <h3 style={styles.legendTitle}>Priority Legend</h3>
             <div style={styles.legendItems}>
-              <PriorityIndicator score={4.5} size="sm" />
-              <span>Critical (4-5)</span>
+              <PriorityIndicator score={5} size="sm" />
+              <span>Critical (5)</span>
             </div>
             <div style={styles.legendItems}>
-              <PriorityIndicator score={3.5} size="sm" />
-              <span>High (3-4)</span>
+              <PriorityIndicator score={4} size="sm" />
+              <span>High (4)</span>
             </div>
             <div style={styles.legendItems}>
-              <PriorityIndicator score={2.5} size="sm" />
-              <span>Medium (2-3)</span>
+              <PriorityIndicator score={3} size="sm" />
+              <span>Medium (3)</span>
             </div>
             <div style={styles.legendItems}>
-              <PriorityIndicator score={1.5} size="sm" />
-              <span>Low (0-2)</span>
+              <PriorityIndicator score={2} size="sm" />
+              <span>Low (2)</span>
+            </div>
+            <div style={styles.legendItems}>
+              <PriorityIndicator score={1} size="sm" />
+              <span>Minimal (1)</span>
             </div>
           </div>
         </aside>
@@ -225,7 +283,7 @@ export function ModQueueDashboard() {
   );
 }
 
-const styles: Record<string, React.CSSProperties> = {
+const styles: Record<string, CSSProperties> = {
   dashboard: {
     minHeight: '100vh',
     backgroundColor: '#0f172a',
@@ -303,6 +361,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     gap: '16px',
     marginBottom: '16px',
+    flexWrap: 'wrap',
   },
   stat: {
     backgroundColor: '#1f2937',
@@ -325,6 +384,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     gap: '12px',
     marginBottom: '16px',
+    flexWrap: 'wrap',
   },
   select: {
     padding: '8px 12px',
@@ -339,6 +399,9 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'grid',
     gridTemplateColumns: '1fr 280px',
     gap: '16px',
+  },
+  mainCompact: {
+    gridTemplateColumns: '1fr',
   },
   queueList: {},
   sidebar: {},
@@ -366,3 +429,11 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#9ca3af',
   },
 };
+
+function getIsCompactLayout(): boolean {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  return window.innerWidth < 1100;
+}
