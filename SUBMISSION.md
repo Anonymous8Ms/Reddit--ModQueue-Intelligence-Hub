@@ -2,7 +2,7 @@
 
 ## App Listing
 
-- Developer listing link: `Add the public developer.reddit.com app URL after publish`
+- Developer listing link: `https://developers.reddit.com/apps/modqueue-hub-1`
 - Playtest app name: `modqueue-hub-1`
 - Playtest subreddit: `r/modqueue_hub_1_dev`
 
@@ -72,6 +72,5 @@ Estimated measurable benefits for active mod teams:
 
 ## Notes Before Final Submission
 
-- Replace the developer listing line with the final public app URL after publish.
 - Capture one or two screenshots or a short demo clip while the queue contains reported items.
 - If possible, test the claim flow with two moderator accounts before submitting.

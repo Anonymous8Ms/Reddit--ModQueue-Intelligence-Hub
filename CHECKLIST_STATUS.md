@@ -1,6 +1,6 @@
 # ModQueue Intelligence Hub Checklist Status
 
-Last updated: `2026-05-17`
+Last updated: `2026-05-24`
 
 This file tracks current readiness against the hackathon checklist.
 
@@ -120,6 +120,7 @@ Status legend:
 - `PASS` `npm run type-check`
 - `PASS` `npm run lint`
 - `PASS` `npm run build`
+- `PASS` Starter/template menu items, example routes, and unused counter files removed from the repo
 
 ## 6. Known Remaining Work
 
@@ -131,4 +132,3 @@ These are the biggest remaining gaps before calling the project fully submission
 4. Validate presence timeout and stale-session cleanup live.
 5. Do one narrow-screen/mobile pass.
 6. Add final public app listing URL after publish.
-

@@ -31,25 +31,8 @@
         "location": "subreddit",
         "forUserType": "moderator",
         "endpoint": "/internal/menu/open-dashboard"
-      },
-      {
-        "label": "Create a new post",
-        "description": "modqueue-hub",
-        "location": "subreddit",
-        "forUserType": "moderator",
-        "endpoint": "/internal/menu/post-create"
-      },
-      {
-        "label": "Example form",
-        "description": "Show a simple form",
-        "location": "subreddit",
-        "forUserType": "moderator",
-        "endpoint": "/internal/menu/example-form"
       }
     ]
-  },
-  "forms": {
-    "exampleForm": "/internal/form/example-submit"
   },
   "scripts": {
     "dev": "vite build --watch",

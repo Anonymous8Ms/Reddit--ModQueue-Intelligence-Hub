@@ -27,7 +27,3 @@ const openDashboardPost = async (c: HonoContext) => {
 };
 
 menu.post('/open-dashboard', openDashboardPost);
-
-menu.post('/post-create', async (c) => {
-  return openDashboardPost(c);
-});

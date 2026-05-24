@@ -15,7 +15,6 @@ triggers.get('/', async (c) => {
 // Devvit expects POST to /internal/triggers/on-app-install
 triggers.post('/on-app-install', async (c) => {
   try {
-    console.log('OnAppInstall trigger called');
     return c.json({
       status: 'success',
       message: 'App installed successfully',

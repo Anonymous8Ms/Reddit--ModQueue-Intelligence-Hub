@@ -33,6 +33,7 @@ export function ModQueueDashboard() {
   const [items, setItems] = useState<EnrichedModQueueItem[]>([]);
   const [patterns, setPatterns] = useState<DetectedPattern[]>([]);
   const [moderators, setModerators] = useState<ModPresence[]>([]);
+  const [currentModeratorUsername, setCurrentModeratorUsername] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -53,6 +54,7 @@ export function ModQueueDashboard() {
         setItems(data.items);
         setPatterns(data.patterns);
         setModerators(data.activeModerators);
+        setCurrentModeratorUsername(data.currentModeratorUsername);
         setLastUpdated(Date.now());
       }
     } catch (e) {
@@ -114,7 +116,9 @@ export function ModQueueDashboard() {
   const filteredItems = items
     .filter((item) => {
       if (filter === 'high') return item.priority.score >= 3;
-      if (filter === 'mine') return !!item.claim?.claimedBy;
+      if (filter === 'mine') {
+        return !!currentModeratorUsername && item.claim?.claimedBy === currentModeratorUsername;
+      }
       return true;
     })
     .sort((a, b) => {
@@ -123,6 +127,35 @@ export function ModQueueDashboard() {
       return b.createdUtc - a.createdUtc;
     });
   const displayedItems = filteredItems.slice(0, 10);
+  const myClaimCount = currentModeratorUsername
+    ? items.filter((i) => i.claim?.claimedBy === currentModeratorUsername).length
+    : 0;
+  const statCards = [
+    {
+      label: 'Critical',
+      value: items.filter((i) => i.priority.score === 5).length,
+      tone: '#ef4444',
+      note: 'Immediate review',
+    },
+    {
+      label: 'High',
+      value: items.filter((i) => i.priority.score === 4).length,
+      tone: '#f97316',
+      note: 'Escalated risk',
+    },
+    {
+      label: 'Claimed',
+      value: items.filter((i) => i.claim).length,
+      tone: '#3b82f6',
+      note: 'Already in progress',
+    },
+    {
+      label: 'My Claims',
+      value: myClaimCount,
+      tone: '#14b8a6',
+      note: currentModeratorUsername ? `Assigned to u/${currentModeratorUsername}` : 'Not signed in',
+    },
+  ] as const;
 
   if (loading) {
     return (
@@ -148,9 +181,25 @@ export function ModQueueDashboard() {
     <div style={styles.dashboard}>
       {/* Header */}
       <header style={styles.header}>
-        <h1 style={styles.title}>ModQueue Intelligence Hub</h1>
+        <div style={styles.titleBlock}>
+          <span style={styles.kicker}>Live Moderator Console</span>
+          <h1 style={styles.title}>ModQueue Intelligence Hub</h1>
+          <p style={styles.subtitle}>
+            Surface urgent queue items first, keep moderators coordinated, and investigate faster
+            without leaving the queue.
+          </p>
+        </div>
         <div style={styles.headerActions}>
-          <span style={styles.count}>{items.length} items</span>
+          <div style={styles.headerMeta}>
+            <span style={styles.statusPill}>Live queue</span>
+            <span style={styles.count}>{items.length} items</span>
+            {currentModeratorUsername && (
+              <span style={styles.metaPill}>u/{currentModeratorUsername}</span>
+            )}
+            <span style={styles.metaPill}>
+              {lastUpdated ? `Synced ${formatLastUpdated(lastUpdated)}` : 'Syncing'}
+            </span>
+          </div>
           <button
             style={{ ...styles.refreshBtn, ...(refreshing ? styles.refreshing : {}) }}
             onClick={handleRefresh}
@@ -162,26 +211,31 @@ export function ModQueueDashboard() {
       </header>
 
       {/* Patterns Alert */}
-      <PatternAlerts patterns={patterns} onItemClick={(id) => console.log('Navigate to:', id)} />
+      <PatternAlerts patterns={patterns} />
 
       {/* Stats Bar */}
       <div style={styles.statsBar}>
-        <div style={styles.stat}>
-          <span style={styles.statValue}>{items.filter((i) => i.priority.score === 5).length}</span>
-          <span style={styles.statLabel}>Critical</span>
-        </div>
-        <div style={styles.stat}>
-          <span style={styles.statValue}>{items.filter((i) => i.priority.score === 4).length}</span>
-          <span style={styles.statLabel}>High</span>
-        </div>
-        <div style={styles.stat}>
-          <span style={styles.statValue}>{items.filter((i) => i.claim).length}</span>
-          <span style={styles.statLabel}>Claimed</span>
-        </div>
+        {statCards.map((card) => (
+          <div
+            key={card.label}
+            style={{
+              ...styles.stat,
+              borderColor: `${card.tone}33`,
+              boxShadow: `inset 0 1px 0 ${card.tone}22`,
+            }}
+          >
+            <span style={{ ...styles.statAccent, backgroundColor: `${card.tone}22`, color: card.tone }}>
+              {card.label}
+            </span>
+            <span style={styles.statValue}>{card.value}</span>
+            <span style={styles.statLabel}>{card.note}</span>
+          </div>
+        ))}
       </div>
 
       {/* Filters */}
       <div style={styles.filters}>
+        <div style={styles.filtersLabel}>Queue Lens</div>
         <select
           style={styles.select}
           value={filter}
@@ -219,6 +273,14 @@ export function ModQueueDashboard() {
       >
         {/* Queue List */}
         <div style={styles.queueList}>
+          <div style={styles.sectionHeader}>
+            <div>
+              <h2 style={styles.sectionTitle}>Top Priority Queue</h2>
+              <p style={styles.sectionSubtitle}>
+                Showing {displayedItems.length} of {filteredItems.length} filtered items
+              </p>
+            </div>
+          </div>
           {displayedItems.length === 0 ? (
             <div style={styles.empty}>
               {items.length === 0 ? 'No items in modqueue' : 'No items match your filter'}
@@ -327,70 +389,161 @@ const styles: Record<string, CSSProperties> = {
   header: {
     display: 'flex',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: '16px',
+    marginBottom: '20px',
+    padding: '20px 22px',
+    borderRadius: '24px',
+    border: '1px solid rgba(71, 85, 105, 0.4)',
+    background:
+      'radial-gradient(circle at top left, rgba(59, 130, 246, 0.18), transparent 28%), linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(30, 41, 59, 0.94))',
+    boxShadow: '0 18px 40px rgba(2, 6, 23, 0.28)',
+  },
+  titleBlock: {
+    maxWidth: '680px',
+  },
+  kicker: {
+    display: 'inline-flex',
     alignItems: 'center',
-    marginBottom: '16px',
+    padding: '5px 10px',
+    marginBottom: '10px',
+    borderRadius: '999px',
+    backgroundColor: 'rgba(20, 184, 166, 0.14)',
+    color: '#5eead4',
+    fontSize: '11px',
+    fontWeight: 700,
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
   },
   title: {
+    margin: '0 0 8px 0',
+    fontSize: '32px',
+    lineHeight: 1.05,
+    fontWeight: 800,
+    letterSpacing: '-0.04em',
+  },
+  subtitle: {
     margin: 0,
-    fontSize: '24px',
-    fontWeight: 700,
+    maxWidth: '620px',
+    fontSize: '14px',
+    lineHeight: 1.6,
+    color: '#94a3b8',
   },
   headerActions: {
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'flex-end',
+    flexDirection: 'column',
     gap: '12px',
   },
+  headerMeta: {
+    display: 'flex',
+    gap: '8px',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-end',
+  },
+  statusPill: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: '6px 10px',
+    borderRadius: '999px',
+    backgroundColor: 'rgba(239, 68, 68, 0.14)',
+    color: '#fca5a5',
+    fontSize: '12px',
+    fontWeight: 700,
+  },
   count: {
-    color: '#9ca3af',
-    fontSize: '14px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: '6px 10px',
+    borderRadius: '999px',
+    backgroundColor: 'rgba(148, 163, 184, 0.12)',
+    color: '#cbd5e1',
+    fontSize: '12px',
+    fontWeight: 600,
+  },
+  metaPill: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: '6px 10px',
+    borderRadius: '999px',
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    color: '#93c5fd',
+    fontSize: '12px',
+    fontWeight: 500,
   },
   refreshBtn: {
-    width: '36px',
-    height: '36px',
+    width: '42px',
+    height: '42px',
     borderRadius: '50%',
-    border: 'none',
+    border: '1px solid rgba(96, 165, 250, 0.25)',
     backgroundColor: '#3b82f6',
     color: 'white',
     fontSize: '18px',
     cursor: 'pointer',
+    boxShadow: '0 10px 18px rgba(59, 130, 246, 0.28)',
   },
   refreshing: {
     opacity: 0.7,
   },
   statsBar: {
-    display: 'flex',
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
     gap: '16px',
     marginBottom: '16px',
-    flexWrap: 'wrap',
   },
   stat: {
-    backgroundColor: '#1f2937',
-    borderRadius: '8px',
-    padding: '12px 20px',
-    textAlign: 'center',
+    background:
+      'linear-gradient(180deg, rgba(30, 41, 59, 0.92), rgba(15, 23, 42, 0.96))',
+    borderRadius: '18px',
+    padding: '18px',
+    border: '1px solid rgba(71, 85, 105, 0.35)',
+  },
+  statAccent: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: '4px 10px',
+    marginBottom: '12px',
+    borderRadius: '999px',
+    fontSize: '11px',
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: '0.06em',
   },
   statValue: {
     display: 'block',
-    fontSize: '24px',
-    fontWeight: 700,
+    fontSize: '30px',
+    fontWeight: 800,
     color: '#f9fafb',
+    marginBottom: '4px',
   },
   statLabel: {
     display: 'block',
     fontSize: '12px',
-    color: '#9ca3af',
+    color: '#94a3b8',
   },
   filters: {
     display: 'flex',
     gap: '12px',
     marginBottom: '16px',
     flexWrap: 'wrap',
+    alignItems: 'center',
+    padding: '14px 16px',
+    borderRadius: '18px',
+    backgroundColor: 'rgba(15, 23, 42, 0.72)',
+    border: '1px solid rgba(71, 85, 105, 0.28)',
+  },
+  filtersLabel: {
+    fontSize: '12px',
+    fontWeight: 700,
+    letterSpacing: '0.06em',
+    textTransform: 'uppercase',
+    color: '#94a3b8',
   },
   select: {
-    padding: '8px 12px',
-    backgroundColor: '#1f2937',
-    border: '1px solid #374151',
-    borderRadius: '6px',
+    padding: '10px 12px',
+    backgroundColor: 'rgba(30, 41, 59, 0.88)',
+    border: '1px solid rgba(71, 85, 105, 0.7)',
+    borderRadius: '10px',
     color: '#f9fafb',
     fontSize: '14px',
     cursor: 'pointer',
@@ -403,17 +556,45 @@ const styles: Record<string, CSSProperties> = {
   mainCompact: {
     gridTemplateColumns: '1fr',
   },
-  queueList: {},
-  sidebar: {},
+  queueList: {
+    minWidth: 0,
+  },
+  sidebar: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
+  },
+  sectionHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '12px',
+  },
+  sectionTitle: {
+    margin: '0 0 4px 0',
+    fontSize: '18px',
+    fontWeight: 700,
+    color: '#f8fafc',
+  },
+  sectionSubtitle: {
+    margin: 0,
+    fontSize: '12px',
+    color: '#94a3b8',
+  },
   empty: {
     textAlign: 'center',
-    padding: '40px',
-    color: '#6b7280',
+    padding: '52px 24px',
+    color: '#94a3b8',
+    borderRadius: '18px',
+    border: '1px dashed rgba(71, 85, 105, 0.5)',
+    backgroundColor: 'rgba(15, 23, 42, 0.55)',
   },
   legend: {
-    backgroundColor: '#1f2937',
-    borderRadius: '12px',
+    background:
+      'linear-gradient(180deg, rgba(30, 41, 59, 0.92), rgba(15, 23, 42, 0.96))',
+    borderRadius: '18px',
     padding: '16px',
+    border: '1px solid rgba(71, 85, 105, 0.32)',
   },
   legendTitle: {
     margin: '0 0 12px 0',
@@ -426,7 +607,7 @@ const styles: Record<string, CSSProperties> = {
     gap: '12px',
     marginBottom: '8px',
     fontSize: '13px',
-    color: '#9ca3af',
+    color: '#cbd5e1',
   },
 };
 
@@ -436,4 +617,15 @@ function getIsCompactLayout(): boolean {
   }
 
   return window.innerWidth < 1100;
+}
+
+function formatLastUpdated(timestamp: number): string {
+  const diffSeconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
+  if (diffSeconds < 5) {
+    return 'just now';
+  }
+  if (diffSeconds < 60) {
+    return `${diffSeconds}s ago`;
+  }
+  return `${Math.floor(diffSeconds / 60)}m ago`;
 }

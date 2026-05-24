@@ -25,13 +25,14 @@ queueApi.get('/queue', async (c) => {
 
   try {
     // Update mod presence on each fetch
-    await updateCurrentModPresence(subredditName);
+    const currentModerator = await updateCurrentModPresence(subredditName);
 
     const queueData = await getEnrichedQueue(subredditName);
 
     return c.json<QueueResponse>({
       type: 'queue',
       ...queueData,
+      currentModeratorUsername: currentModerator?.username ?? null,
     });
   } catch (error) {
     console.error('Failed to fetch queue:', error);

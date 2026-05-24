@@ -22,10 +22,10 @@ export function ActiveModerators({ moderators }: Props) {
 
   return (
     <div style={styles.container}>
-      <h3 style={styles.title}>
-        Active Moderators
-        <span style={styles.count}>{moderators.length}</span>
-      </h3>
+      <div style={styles.header}>
+        <h3 style={styles.title}>Active Moderators</h3>
+        <span style={styles.count}>{moderators.length} live</span>
+      </div>
       <div style={styles.list}>
         {moderators.map((mod) => (
           <div key={mod.username} style={styles.modItem}>
@@ -48,29 +48,34 @@ export function ActiveModerators({ moderators }: Props) {
 
 const styles: Record<string, CSSProperties> = {
   container: {
-    backgroundColor: '#1f2937',
-    borderRadius: '12px',
+    background:
+      'linear-gradient(180deg, rgba(30, 41, 59, 0.92), rgba(15, 23, 42, 0.96))',
+    borderRadius: '18px',
     padding: '16px',
-    marginBottom: '16px',
+    border: '1px solid rgba(71, 85, 105, 0.32)',
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '12px',
   },
   title: {
-    margin: '0 0 12px 0',
-    fontSize: '14px',
-    fontWeight: 600,
+    margin: 0,
+    fontSize: '15px',
+    fontWeight: 700,
     color: '#f9fafb',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
   },
   count: {
-    backgroundColor: '#3b82f6',
-    color: 'white',
+    backgroundColor: 'rgba(20, 184, 166, 0.14)',
+    color: '#5eead4',
     fontSize: '12px',
-    padding: '2px 8px',
-    borderRadius: '10px',
+    padding: '4px 10px',
+    borderRadius: '999px',
+    fontWeight: 700,
   },
   empty: {
-    color: '#6b7280',
+    color: '#94a3b8',
     fontSize: '13px',
     margin: 0,
   },
@@ -79,8 +84,8 @@ const styles: Record<string, CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
-    padding: '8px 0',
-    borderBottom: '1px solid #374151',
+    padding: '10px 0',
+    borderBottom: '1px solid rgba(71, 85, 105, 0.35)',
   },
   avatar: {
     width: '32px',
@@ -105,12 +110,13 @@ const styles: Record<string, CSSProperties> = {
   seen: {
     display: 'block',
     fontSize: '11px',
-    color: '#6b7280',
+    color: '#94a3b8',
   },
   online: {
     width: '8px',
     height: '8px',
     borderRadius: '50%',
     backgroundColor: '#22c55e',
+    boxShadow: '0 0 0 6px rgba(34, 197, 94, 0.12)',
   },
 };

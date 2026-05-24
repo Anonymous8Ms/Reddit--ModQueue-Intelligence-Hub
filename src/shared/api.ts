@@ -10,25 +10,6 @@ import type {
   UserContext,
 } from './types';
 
-export type InitResponse = {
-  type: 'init';
-  postId: string;
-  count: number;
-  username: string;
-};
-
-export type IncrementResponse = {
-  type: 'increment';
-  postId: string;
-  count: number;
-};
-
-export type DecrementResponse = {
-  type: 'decrement';
-  postId: string;
-  count: number;
-};
-
 // ============================================================================
 // MODQUEUE HUB API TYPES
 // ============================================================================
@@ -39,6 +20,7 @@ export type QueueResponse = {
   patterns: DetectedPattern[];
   activeModerators: ModPresence[];
   totalCount: number;
+  currentModeratorUsername: string | null;
 };
 
 export type ContextResponse = {

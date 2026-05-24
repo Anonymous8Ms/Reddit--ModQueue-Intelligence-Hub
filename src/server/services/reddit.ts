@@ -78,15 +78,6 @@ export async function fetchModQueue(
       console.error('Failed to fetch reports listing:', reportsResult.reason);
     }
 
-    console.log('Fetched moderation items', {
-      subredditName,
-      modQueueCount:
-        modQueueResult.status === 'fulfilled' ? modQueueResult.value.length : 0,
-      reportsCount:
-        reportsResult.status === 'fulfilled' ? reportsResult.value.length : 0,
-      combinedCount: combinedItems.size,
-    });
-
     return Array.from(combinedItems.values()).map((item) => mapQueueItem(item, subredditName));
   } catch (error) {
     console.error('Failed to fetch modqueue:', error);

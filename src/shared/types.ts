@@ -76,7 +76,7 @@ export type PriorityFactors = {
 
 export type PriorityScore = {
   itemId: string;
-  score: number; // 0-5 (higher = more urgent)
+  score: number; // 1-5 (higher = more urgent)
   reasoning: string;
   timestamp: number;
   factors: PriorityFactors;
@@ -136,34 +136,4 @@ export type DailyStats = {
   highPriorityCount: number;
   topModerator: string;
   moderatorActions: Record<string, number>;
-};
-
-// ============================================================================
-// API RESPONSES
-// ============================================================================
-
-export type QueueResponse = {
-  type: 'queue';
-  items: EnrichedModQueueItem[];
-  patterns: DetectedPattern[];
-  activeModerators: ModPresence[];
-  totalCount: number;
-};
-
-export type ClaimResponse = {
-  type: 'claim';
-  success: boolean;
-  claim?: ItemClaim;
-  message?: string;
-};
-
-export type ContextResponse = {
-  type: 'context';
-  userId: string;
-  context: UserContext;
-};
-
-export type PresenceResponse = {
-  type: 'presence';
-  moderators: ModPresence[];
 };
