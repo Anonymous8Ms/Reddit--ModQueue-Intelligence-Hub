@@ -66,7 +66,7 @@ export function ModQueueCard({ item, onClaim, onContextRequest }: Props) {
       style={{
         ...styles.card,
         borderColor: `${priorityColor}30`,
-        boxShadow: `inset 0 1px 0 ${priorityColor}12, 0 16px 30px rgba(2, 6, 23, 0.18)`,
+        boxShadow: `inset 0 1px 0 ${priorityColor}12, 0 16px 28px rgba(24, 33, 43, 0.06)`,
       }}
     >
       <div style={{ ...styles.cardAccent, backgroundColor: priorityColor }} />
@@ -110,9 +110,9 @@ export function ModQueueCard({ item, onClaim, onContextRequest }: Props) {
       <div
         style={{
           ...styles.claimStatus,
-          backgroundColor: isClaimed ? 'rgba(59, 130, 246, 0.14)' : 'rgba(100, 116, 139, 0.12)',
-          color: isClaimed ? '#93c5fd' : '#cbd5e1',
-          borderColor: isClaimed ? 'rgba(59, 130, 246, 0.24)' : 'rgba(100, 116, 139, 0.18)',
+          backgroundColor: isClaimed ? '#fff3ef' : '#fbf7f1',
+          color: isClaimed ? '#d9482b' : '#4f5863',
+          borderColor: isClaimed ? '#f2c3b7' : '#e9dfd2',
         }}
       >
         <span style={styles.claimIcon}>{isClaimed ? '🔒' : '○'}</span>
@@ -128,7 +128,7 @@ export function ModQueueCard({ item, onClaim, onContextRequest }: Props) {
         <button
           style={{
             ...styles.claimBtn,
-            backgroundColor: isClaimed ? '#475569' : '#2563eb',
+            backgroundColor: isClaimed ? '#18212b' : '#d9482b',
           }}
           onClick={handleClaim}
           disabled={claiming}
@@ -145,13 +145,12 @@ export function ModQueueCard({ item, onClaim, onContextRequest }: Props) {
 
 const styles: Record<string, CSSProperties> = {
   card: {
-    background:
-      'linear-gradient(180deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95))',
-    borderRadius: '20px',
+    backgroundColor: '#fffdf8',
+    borderRadius: '24px',
     padding: '18px',
     marginBottom: '14px',
     position: 'relative',
-    border: '1px solid #374151',
+    border: '1px solid #e8ddd1',
     overflow: 'hidden',
   },
   cardAccent: {
@@ -175,7 +174,7 @@ const styles: Record<string, CSSProperties> = {
     fontWeight: 800,
     fontSize: '14px',
     padding: '0 10px',
-    boxShadow: '0 10px 18px rgba(15, 23, 42, 0.26)',
+    boxShadow: '0 10px 18px rgba(24, 33, 43, 0.12)',
   },
   header: {
     display: 'flex',
@@ -185,28 +184,28 @@ const styles: Record<string, CSSProperties> = {
     alignItems: 'center',
   },
   type: {
-    backgroundColor: 'rgba(71, 85, 105, 0.3)',
+    backgroundColor: '#f3eee6',
     padding: '4px 9px',
     borderRadius: '999px',
-    color: '#cbd5e1',
+    color: '#4f5863',
     fontWeight: 700,
     letterSpacing: '0.04em',
   },
   time: {
-    color: '#94a3b8',
+    color: '#8a8f98',
   },
   title: {
     margin: '0 0 10px 0',
     fontSize: '18px',
     lineHeight: 1.3,
     fontWeight: 700,
-    color: '#f9fafb',
+    color: '#18212b',
     paddingRight: '64px',
   },
   body: {
     margin: '0 0 14px 0',
     fontSize: '14px',
-    color: '#cbd5e1',
+    color: '#4f5863',
     lineHeight: 1.6,
   },
   author: {
@@ -217,12 +216,12 @@ const styles: Record<string, CSSProperties> = {
     fontSize: '14px',
   },
   authorLabel: {
-    color: '#94a3b8',
+    color: '#8a8f98',
   },
   authorBtn: {
     background: 'none',
     border: 'none',
-    color: '#60a5fa',
+    color: '#d9482b',
     cursor: 'pointer',
     padding: 0,
     fontSize: '14px',
@@ -239,14 +238,14 @@ const styles: Record<string, CSSProperties> = {
     flexWrap: 'wrap',
   },
   reports: {
-    color: '#fecaca',
-    backgroundColor: 'rgba(239, 68, 68, 0.14)',
+    color: '#d9482b',
+    backgroundColor: '#fff3ef',
     padding: '4px 8px',
     borderRadius: '999px',
   },
   keywordBadge: {
-    color: '#fdba74',
-    backgroundColor: 'rgba(249, 115, 22, 0.16)',
+    color: '#8c5b2d',
+    backgroundColor: '#f8efe4',
     padding: '4px 8px',
     borderRadius: '999px',
   },
@@ -273,7 +272,7 @@ const styles: Record<string, CSSProperties> = {
     letterSpacing: '0.04em',
   },
   reasoningText: {
-    color: '#94a3b8',
+    color: '#66707b',
   },
   actions: {
     display: 'flex',
@@ -283,20 +282,20 @@ const styles: Record<string, CSSProperties> = {
     flex: 1,
     padding: '10px 16px',
     borderRadius: '10px',
-    border: '1px solid rgba(96, 165, 250, 0.2)',
+    border: '1px solid rgba(217, 72, 43, 0.18)',
     color: 'white',
     fontWeight: 700,
     cursor: 'pointer',
     fontSize: '14px',
-    boxShadow: '0 12px 18px rgba(37, 99, 235, 0.18)',
+    boxShadow: '0 12px 18px rgba(217, 72, 43, 0.14)',
   },
   contextBtn: {
     flex: 1,
     padding: '10px 16px',
     borderRadius: '10px',
-    border: '1px solid rgba(71, 85, 105, 0.75)',
-    backgroundColor: 'rgba(15, 23, 42, 0.55)',
-    color: '#e2e8f0',
+    border: '1px solid #ddd2c4',
+    backgroundColor: '#fffdf8',
+    color: '#18212b',
     cursor: 'pointer',
     fontSize: '14px',
     fontWeight: 600,

@@ -124,7 +124,10 @@ function createModReportTuple(reason: string): [string, string, number] {
 // USER INFO OPERATIONS
 // ============================================================================
 
-export async function getUserInfo(userId: string): Promise<{
+export async function getUserInfo(
+  userId: string,
+  usernameHint?: string
+): Promise<{
   username: string;
   karma: { post: number; comment: number; total: number };
   accountAgeDays: number;
@@ -132,7 +135,14 @@ export async function getUserInfo(userId: string): Promise<{
 } | null> {
   try {
     const normalizedUserId = toRedditUserId(userId);
-    const user = await reddit.getUserById(normalizedUserId);
+    let user =
+      userId !== 'unknown'
+        ? await reddit.getUserById(normalizedUserId)
+        : undefined;
+
+    if (!user && usernameHint && usernameHint !== '[deleted]' && usernameHint !== 'unknown') {
+      user = await reddit.getUserByUsername(usernameHint);
+    }
 
     if (!user) return null;
 
@@ -322,7 +332,7 @@ export async function getFullUserContext(
   try {
     // Fetch user info and recent activity in parallel
     const [userInfo, recentActivity, modActions] = await Promise.all([
-      getUserInfo(userId),
+      getUserInfo(userId, username),
       getUserRecentActivity(username, 10),
       getUserModActions(username, subredditName, 50),
     ]);

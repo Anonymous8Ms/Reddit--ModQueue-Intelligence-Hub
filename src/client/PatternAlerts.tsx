@@ -70,24 +70,23 @@ const styles: Record<string, CSSProperties> = {
     fontWeight: 700,
     letterSpacing: '0.08em',
     textTransform: 'uppercase',
-    color: '#94a3b8',
+    color: '#8a8f98',
   },
   count: {
     fontSize: '12px',
-    color: '#cbd5e1',
+    color: '#6b7280',
   },
   alert: {
     display: 'flex',
     gap: '12px',
     padding: '14px 16px',
-    background:
-      'linear-gradient(180deg, rgba(30, 41, 59, 0.92), rgba(15, 23, 42, 0.96))',
+    backgroundColor: '#fffdf8',
     borderRadius: '16px',
     borderLeft: '4px solid',
     marginBottom: '8px',
-    borderTop: '1px solid rgba(71, 85, 105, 0.24)',
-    borderRight: '1px solid rgba(71, 85, 105, 0.24)',
-    borderBottom: '1px solid rgba(71, 85, 105, 0.24)',
+    borderTop: '1px solid #eee6da',
+    borderRight: '1px solid #eee6da',
+    borderBottom: '1px solid #eee6da',
   },
   icon: {
     fontSize: '24px',
@@ -105,7 +104,7 @@ const styles: Record<string, CSSProperties> = {
     fontSize: '12px',
     fontWeight: 700,
     letterSpacing: '0.04em',
-    color: '#f9fafb',
+    color: '#18212b',
   },
   severity: {
     fontSize: '11px',
@@ -114,7 +113,7 @@ const styles: Record<string, CSSProperties> = {
   desc: {
     margin: '0 0 8px 0',
     fontSize: '13px',
-    color: '#cbd5e1',
+    color: '#4f5863',
     lineHeight: 1.5,
   },
   items: {
@@ -123,17 +122,17 @@ const styles: Record<string, CSSProperties> = {
     flexWrap: 'wrap',
   },
   itemBtn: {
-    backgroundColor: 'rgba(59, 130, 246, 0.16)',
+    backgroundColor: '#fff3ef',
     border: 'none',
     borderRadius: '999px',
     padding: '4px 9px',
-    color: '#60a5fa',
+    color: '#d9482b',
     fontSize: '11px',
     cursor: 'pointer',
   },
   more: {
     fontSize: '11px',
-    color: '#6b7280',
+    color: '#8a8f98',
     alignSelf: 'center',
   },
 };

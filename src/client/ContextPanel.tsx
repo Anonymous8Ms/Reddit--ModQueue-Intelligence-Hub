@@ -17,15 +17,20 @@ const MIN_GRID_COLUMNS = 'repeat(auto-fit, minmax(140px, 1fr))';
 export function ContextPanel({ userId, username, onClose }: Props) {
   const [context, setContext] = useState<UserContext | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'activity' | 'modHistory'>('activity');
 
   const loadContext = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await api.getUserContext(userId, username);
       if (res.type === 'context') {
         setContext(res.context);
       }
+    } catch (err) {
+      setContext(null);
+      setError(err instanceof Error ? err.message : 'Unable to load user context');
     } finally {
       setLoading(false);
     }
@@ -81,9 +86,30 @@ export function ContextPanel({ userId, username, onClose }: Props) {
                 <ModHistoryList actions={context.modActions} />
               )}
             </div>
+
+            <div style={styles.participation}>
+              <span style={styles.participationLabel}>Subreddit participation</span>
+              <span style={styles.participationText}>
+                {context.subredditParticipation.postCount} posts •{' '}
+                {context.subredditParticipation.commentCount} comments • first seen{' '}
+                {formatTimeAgo(context.subredditParticipation.firstSeen)}
+              </span>
+            </div>
           </>
         ) : (
-          <div style={styles.error}>Failed to load context</div>
+          <div style={styles.errorWrap}>
+            <div style={styles.errorTitle}>Context unavailable</div>
+            <div style={styles.errorMessage}>
+              {error || 'Reddit did not return enough user data for this account.'}
+            </div>
+            <div style={styles.errorHint}>
+              This usually happens for very new accounts, deleted users, or items where Reddit does
+              not expose a stable author id yet.
+            </div>
+            <button style={styles.retryBtn} onClick={() => void loadContext()}>
+              Retry context fetch
+            </button>
+          </div>
         )}
       </div>
     </div>
@@ -147,107 +173,141 @@ const styles: Record<string, CSSProperties> = {
   overlay: {
     position: 'fixed',
     top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'rgba(24, 33, 43, 0.32)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1000,
   },
   panel: {
-    backgroundColor: '#111827',
-    borderRadius: '16px',
+    backgroundColor: '#fffdf8',
+    borderRadius: '24px',
     width: '90%',
-    maxWidth: '500px',
+    maxWidth: '560px',
     maxHeight: '80vh',
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
+    border: '1px solid #e6ddd0',
+    boxShadow: '0 24px 60px rgba(24, 33, 43, 0.16)',
   },
   header: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '16px 20px',
-    borderBottom: '1px solid #374151',
+    borderBottom: '1px solid #eee6da',
   },
   title: {
     margin: 0,
     fontSize: '18px',
-    fontWeight: 600,
-    color: '#f9fafb',
+    fontWeight: 700,
+    color: '#18212b',
   },
   closeBtn: {
     background: 'none',
     border: 'none',
     fontSize: '24px',
-    color: '#6b7280',
+    color: '#7a7f87',
     cursor: 'pointer',
   },
   loading: {
     padding: '40px',
     textAlign: 'center',
-    color: '#9ca3af',
+    color: '#6b7280',
   },
-  error: {
-    padding: '40px',
-    textAlign: 'center',
-    color: '#ef4444',
+  errorWrap: {
+    padding: '28px 24px 32px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  },
+  errorTitle: {
+    fontSize: '18px',
+    fontWeight: 700,
+    color: '#18212b',
+  },
+  errorMessage: {
+    fontSize: '14px',
+    color: '#d9482b',
+    lineHeight: 1.5,
+  },
+  errorHint: {
+    fontSize: '13px',
+    color: '#6b7280',
+    lineHeight: 1.6,
+  },
+  retryBtn: {
+    alignSelf: 'flex-start',
+    marginTop: '8px',
+    padding: '10px 14px',
+    borderRadius: '999px',
+    border: '1px solid #f2c3b7',
+    backgroundColor: '#fff3ef',
+    color: '#d9482b',
+    cursor: 'pointer',
+    fontWeight: 600,
   },
   statsGrid: {
     display: 'grid',
     gridTemplateColumns: MIN_GRID_COLUMNS,
     gap: '12px',
     padding: '16px 20px',
-    borderBottom: '1px solid #374151',
+    borderBottom: '1px solid #eee6da',
   },
   statCard: {
-    backgroundColor: '#1f2937',
-    borderRadius: '8px',
-    padding: '12px',
-    textAlign: 'center',
+    backgroundColor: '#fbf7f1',
+    borderRadius: '16px',
+    padding: '14px',
+    textAlign: 'left',
+    border: '1px solid #efe5d8',
   },
   statLabel: {
     display: 'block',
     fontSize: '11px',
-    color: '#9ca3af',
+    color: '#8a8f98',
     marginBottom: '4px',
+    textTransform: 'uppercase',
+    letterSpacing: '0.06em',
   },
   statValue: {
     display: 'block',
     fontSize: '16px',
-    fontWeight: 600,
-    color: '#f9fafb',
+    fontWeight: 700,
+    color: '#18212b',
   },
   tabs: {
     display: 'flex',
-    borderBottom: '1px solid #374151',
+    borderBottom: '1px solid #eee6da',
+    padding: '0 8px',
   },
   tab: {
     flex: 1,
     padding: '12px',
     background: 'none',
     border: 'none',
-    color: '#9ca3af',
+    color: '#8a8f98',
     cursor: 'pointer',
     fontSize: '14px',
   },
   tabActive: {
-    color: '#3b82f6',
-    borderBottom: '2px solid #3b82f6',
+    color: '#d9482b',
+    borderBottom: '2px solid #d9482b',
   },
   tabContent: {
     flex: 1,
     overflow: 'auto',
-    padding: '12px',
+    padding: '16px 20px 8px',
   },
   list: {},
   listItem: {
     display: 'flex',
     gap: '12px',
-    padding: '10px',
-    backgroundColor: '#1f2937',
-    borderRadius: '8px',
-    marginBottom: '8px',
+    padding: '12px',
+    backgroundColor: '#fbf7f1',
+    borderRadius: '16px',
+    marginBottom: '10px',
+    border: '1px solid #efe5d8',
   },
   activityType: {
     fontSize: '20px',
@@ -258,18 +318,19 @@ const styles: Record<string, CSSProperties> = {
   activitySub: {
     display: 'block',
     fontSize: '12px',
-    color: '#60a5fa',
+    color: '#d9482b',
   },
   activityText: {
     display: 'block',
     fontSize: '13px',
-    color: '#d1d5db',
+    color: '#18212b',
     marginTop: '2px',
+    lineHeight: 1.5,
   },
   activityTime: {
     display: 'block',
     fontSize: '11px',
-    color: '#6b7280',
+    color: '#8a8f98',
     marginTop: '4px',
   },
   actionIcon: {
@@ -278,7 +339,25 @@ const styles: Record<string, CSSProperties> = {
   empty: {
     padding: '24px',
     textAlign: 'center',
-    color: '#6b7280',
+    color: '#8a8f98',
     fontSize: '14px',
+  },
+  participation: {
+    padding: '0 20px 18px',
+  },
+  participationLabel: {
+    display: 'block',
+    fontSize: '11px',
+    fontWeight: 700,
+    color: '#8a8f98',
+    textTransform: 'uppercase',
+    letterSpacing: '0.06em',
+    marginBottom: '4px',
+  },
+  participationText: {
+    display: 'block',
+    fontSize: '13px',
+    color: '#4f5863',
+    lineHeight: 1.5,
   },
 };

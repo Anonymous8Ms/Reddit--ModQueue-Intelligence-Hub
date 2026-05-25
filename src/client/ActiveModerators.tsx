@@ -48,11 +48,10 @@ export function ActiveModerators({ moderators }: Props) {
 
 const styles: Record<string, CSSProperties> = {
   container: {
-    background:
-      'linear-gradient(180deg, rgba(30, 41, 59, 0.92), rgba(15, 23, 42, 0.96))',
-    borderRadius: '18px',
-    padding: '16px',
-    border: '1px solid rgba(71, 85, 105, 0.32)',
+    backgroundColor: '#fffdf8',
+    borderRadius: '20px',
+    padding: '18px',
+    border: '1px solid #e7ddd0',
   },
   header: {
     display: 'flex',
@@ -64,18 +63,18 @@ const styles: Record<string, CSSProperties> = {
     margin: 0,
     fontSize: '15px',
     fontWeight: 700,
-    color: '#f9fafb',
+    color: '#18212b',
   },
   count: {
-    backgroundColor: 'rgba(20, 184, 166, 0.14)',
-    color: '#5eead4',
+    backgroundColor: '#fff3ef',
+    color: '#d9482b',
     fontSize: '12px',
     padding: '4px 10px',
     borderRadius: '999px',
     fontWeight: 700,
   },
   empty: {
-    color: '#94a3b8',
+    color: '#8a8f98',
     fontSize: '13px',
     margin: 0,
   },
@@ -85,13 +84,13 @@ const styles: Record<string, CSSProperties> = {
     alignItems: 'center',
     gap: '10px',
     padding: '10px 0',
-    borderBottom: '1px solid rgba(71, 85, 105, 0.35)',
+    borderBottom: '1px solid #eee6da',
   },
   avatar: {
     width: '32px',
     height: '32px',
     borderRadius: '50%',
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#18212b',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -105,12 +104,12 @@ const styles: Record<string, CSSProperties> = {
   username: {
     display: 'block',
     fontSize: '14px',
-    color: '#f9fafb',
+    color: '#18212b',
   },
   seen: {
     display: 'block',
     fontSize: '11px',
-    color: '#94a3b8',
+    color: '#8a8f98',
   },
   online: {
     width: '8px',

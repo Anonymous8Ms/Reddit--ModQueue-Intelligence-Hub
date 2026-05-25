@@ -45,9 +45,10 @@ export async function getEnrichedQueue(subredditName: string): Promise<QueueData
   for (const item of rawItems) {
     // Get or compute priority score
     let userContext: UserContext | undefined;
+    const cacheKey = getContextCacheKey(item.author.id, item.author.name);
 
     // Check cache first
-    const cachedContext = await getUserContext(item.author.id);
+    const cachedContext = await getUserContext(cacheKey);
     if (cachedContext) {
       userContext = cachedContext;
     } else {
@@ -58,7 +59,7 @@ export async function getEnrichedQueue(subredditName: string): Promise<QueueData
         subredditName
       );
       if (fetchedContext) {
-        await setUserContext(item.author.id, fetchedContext);
+        await setUserContext(cacheKey, fetchedContext);
         userContext = fetchedContext;
       }
     }
@@ -121,14 +122,23 @@ export async function getEnrichedUserContext(
   username: string,
   subredditName: string
 ): Promise<UserContext | null> {
+  const cacheKey = getContextCacheKey(userId, username);
   // Check cache first
-  const cached = await getUserContext(userId);
+  const cached = await getUserContext(cacheKey);
   if (cached) return cached;
 
   // Fetch fresh
   const context = await getFullUserContext(userId, username, subredditName);
   if (context) {
-    await setUserContext(userId, context);
+    await setUserContext(cacheKey, context);
   }
   return context;
+}
+
+function getContextCacheKey(userId: string, username: string): string {
+  if (userId && userId !== 'unknown') {
+    return userId;
+  }
+
+  return `username:${username.toLowerCase()}`;
 }
